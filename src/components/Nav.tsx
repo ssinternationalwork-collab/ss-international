@@ -49,20 +49,18 @@ export default function Nav() {
       }}
     >
 
-      {/* LEFT — Logo */}
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <a href='/' style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
           <img src='/logo_ssi_full.png' alt='SS International' style={{ height: 92, width: 'auto' }}/>
         </a>
       </div>
 
-      {/* CENTER — Links */}
       <div style={{ display: "flex", alignItems: "center", gap: 40 }}>
         {[
           { label: 'Home', href: '/' },
           { label: 'Industries', href: '/industries' },
-          { label: 'Technologies', href: '/technologies' },
           { label: 'Products', href: '/products' },
+          { label: 'Quality', href: '/quality-assurance' },
           { label: 'About', href: '/about' },
         ].map(l => (
           <a key={l.label} href={l.href} style={{
@@ -86,7 +84,6 @@ export default function Nav() {
         ))}
       </div>
 
-      {/* RIGHT — CTA */}
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <a href='/contact' style={{
           background: '#1B91FF', color: '#fff',
