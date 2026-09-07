@@ -35,10 +35,9 @@ export default function ProductsOverview() {
       <section style={{ padding: '96px 72px 112px' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <motion.div variants={gridVariants} initial='hidden' whileInView='visible' viewport={{ once: true, amount: 0.06 }} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 14 }}>
-            {products.map((product, index) => {
-              const isLive = product.slug === 'automotive-profiles';
-              const card = (
-                <motion.article variants={cardVariants} whileHover={{ y: -4 }} transition={{ duration: 0.2 }} style={{ borderRadius: 16, overflow: 'hidden', background: '#FFFFFF', border: '1px solid #E8E8E8', minHeight: 430, display: 'flex', flexDirection: 'column' }}>
+            {products.map((product, index) => (
+              <Link key={product.slug} href={`/products/${product.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <motion.article variants={cardVariants} whileHover={{ y: -4 }} transition={{ duration: 0.2 }} style={{ borderRadius: 16, overflow: 'hidden', background: '#FFFFFF', border: '1px solid #E8E8E8', minHeight: 430, display: 'flex', flexDirection: 'column', height: '100%' }}>
                   <div style={{ height: 285, overflow: 'hidden', background: '#FFFFFF', borderBottom: '1px solid #E8E8E8' }}>
                     <motion.img src={product.image} alt={product.name} whileHover={{ scale: 1.05 }} transition={{ duration: 0.6, ease: [0.25,0.46,0.45,0.94] }} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                   </div>
@@ -49,17 +48,11 @@ export default function ProductsOverview() {
                     </div>
                     <h2 style={{ color: '#141414', fontSize: 22, lineHeight: 1, letterSpacing: '-0.6px', fontWeight: 900, textTransform: 'uppercase', margin: '0 0 12px' }}>{product.name}</h2>
                     <p style={{ color: '#666', fontFamily: 'var(--font-inter)', fontSize: 13, lineHeight: 1.7, margin: '0 0 20px' }}>{product.description}</p>
-                    <div style={{ marginTop: 'auto', color: isLive ? '#1B91FF' : '#A8A8A8', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      {isLive ? 'View Product →' : 'Detail Page Next'}
-                    </div>
+                    <div style={{ marginTop: 'auto', color: '#1B91FF', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>View Product →</div>
                   </div>
                 </motion.article>
-              );
-
-              return isLive ? (
-                <Link key={product.slug} href={`/products/${product.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>{card}</Link>
-              ) : <div key={product.slug}>{card}</div>;
-            })}
+              </Link>
+            ))}
           </motion.div>
         </div>
       </section>
