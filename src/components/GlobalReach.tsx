@@ -3,20 +3,11 @@ import { useEffect, useRef, useState } from 'react';
 
 const BLUE = '#1B91FF';
 const BRONZE = '#B8935A';
-const ARC_ANIMATION_MS = 2600;
+const ROUTE_DRAW_MS = 1500;
+const ROUTE_PAUSE_MS = 220;
+const ROUTE_START_DELAY_MS = 260;
 
-const ARCS = [
-  { startLat: 28.7041, startLng: 77.1025, endLat: 51.507, endLng: -0.127 },
-  { startLat: 28.7041, startLng: 77.1025, endLat: 52.52, endLng: 13.405 },
-  { startLat: 28.7041, startLng: 77.1025, endLat: 40.712, endLng: -74.006 },
-  { startLat: 28.7041, startLng: 77.1025, endLat: 25.204, endLng: 55.270 },
-  { startLat: 28.7041, startLng: 77.1025, endLat: 1.352, endLng: 103.819 },
-  { startLat: 28.7041, startLng: 77.1025, endLat: -33.868, endLng: 151.209 },
-  { startLat: 28.7041, startLng: 77.1025, endLat: 35.676, endLng: 139.650 },
-  { startLat: 28.7041, startLng: 77.1025, endLat: -23.550, endLng: -46.633 },
-  { startLat: 28.7041, startLng: 77.1025, endLat: -26.204, endLng: 28.047 },
-  { startLat: 28.7041, startLng: 77.1025, endLat: 55.755, endLng: 37.617 },
-];
+const INDIA = { lat: 28.7041, lng: 77.1025 };
 
 const DEST_POINTS = [
   { lat: 51.507, lng: -0.127, label: 'United Kingdom' },
@@ -31,14 +22,44 @@ const DEST_POINTS = [
   { lat: 55.755, lng: 37.617, label: 'Russia' },
 ];
 
-const INDIA_POINT = { lat: 28.7041, lng: 77.1025, label: 'India', isOrigin: true };
+const INDIA_POINT = { ...INDIA, label: 'India', isOrigin: true };
+
+function buildRaisedPath(endLat: number, endLng: number) {
+  const steps = 40;
+  const points: Array<{ lat: number; lng: number; alt: number }> = [];
+
+  let lngDelta = endLng - INDIA.lng;
+  if (lngDelta > 180) lngDelta -= 360;
+  if (lngDelta < -180) lngDelta += 360;
+
+  for (let i = 0; i <= steps; i += 1) {
+    const t = i / steps;
+    const lat = INDIA.lat + (endLat - INDIA.lat) * t;
+    let lng = INDIA.lng + lngDelta * t;
+    if (lng > 180) lng -= 360;
+    if (lng < -180) lng += 360;
+
+    const distance = Math.hypot(endLat - INDIA.lat, lngDelta);
+    const peakAlt = Math.min(0.2, Math.max(0.075, distance / 850));
+    const alt = i === 0 || i === steps ? 0.002 : Math.sin(Math.PI * t) * peakAlt;
+
+    points.push({ lat, lng, alt });
+  }
+
+  return points;
+}
+
+const ROUTES = DEST_POINTS.map((destination) => ({
+  label: destination.label,
+  points: buildRaisedPath(destination.lat, destination.lng),
+}));
 
 export default function GlobalReach() {
   const globeRef = useRef<any>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
-  const startTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [Globe, setGlobe] = useState<any>(null);
-  const [routesActive, setRoutesActive] = useState(false);
+  const [visibleRouteCount, setVisibleRouteCount] = useState(0);
 
   useEffect(() => {
     import('react-globe.gl').then((mod) => setGlobe(() => mod.default));
@@ -47,33 +68,54 @@ export default function GlobalReach() {
   useEffect(() => {
     if (!sectionRef.current) return;
 
+    const clearRouteTimer = () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (startTimerRef.current) clearTimeout(startTimerRef.current);
+        clearRouteTimer();
 
-        if (entry.isIntersecting) {
-          // Reset first so every route launches from India together on entry.
-          setRoutesActive(false);
-
-          if (globeRef.current) {
-            globeRef.current.pointOfView({ lat: 20, lng: 78, altitude: 2 }, 700);
-          }
-
-          startTimerRef.current = setTimeout(() => {
-            setRoutesActive(true);
-          }, 220);
-        } else {
-          setRoutesActive(false);
+        if (!entry.isIntersecting) {
+          setVisibleRouteCount(0);
+          return;
         }
+
+        setVisibleRouteCount(0);
+
+        if (globeRef.current) {
+          globeRef.current.pointOfView({ lat: 20, lng: 78, altitude: 2 }, 700);
+        }
+
+        const revealNextRoute = (nextCount: number) => {
+          if (nextCount > ROUTES.length) return;
+
+          setVisibleRouteCount(nextCount);
+
+          if (nextCount < ROUTES.length) {
+            timerRef.current = setTimeout(
+              () => revealNextRoute(nextCount + 1),
+              ROUTE_DRAW_MS + ROUTE_PAUSE_MS,
+            );
+          }
+        };
+
+        timerRef.current = setTimeout(
+          () => revealNextRoute(1),
+          ROUTE_START_DELAY_MS,
+        );
       },
-      { threshold: 0.35 }
+      { threshold: 0.35 },
     );
 
     observer.observe(sectionRef.current);
 
     return () => {
       observer.disconnect();
-      if (startTimerRef.current) clearTimeout(startTimerRef.current);
+      clearRouteTimer();
     };
   }, []);
 
@@ -82,7 +124,7 @@ export default function GlobalReach() {
 
     const controls = globeRef.current.controls();
     controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.18;
+    controls.autoRotateSpeed = 0.14;
     controls.enableZoom = false;
     globeRef.current.pointOfView({ lat: 20, lng: 78, altitude: 2 }, 0);
   }, [Globe]);
@@ -145,16 +187,18 @@ export default function GlobalReach() {
             backgroundColor="rgba(0,0,0,0)"
             globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
             bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
-            arcsData={routesActive ? ARCS : []}
-            arcColor={() => 'rgba(184,147,90,0.92)'}
-            arcOpacity={1}
-            arcStroke={0.8}
-            arcDashLength={0.42}
-            arcDashGap={0.12}
-            arcDashInitialGap={0}
-            arcDashAnimateTime={ARC_ANIMATION_MS}
-            arcsTransitionDuration={900}
-            arcAltitudeAutoScale={0.12}
+            pathsData={ROUTES.slice(0, visibleRouteCount)}
+            pathPoints="points"
+            pathPointLat="lat"
+            pathPointLng="lng"
+            pathPointAlt="alt"
+            pathColor={() => BRONZE}
+            pathStroke={0.65}
+            pathResolution={1}
+            pathDashLength={1}
+            pathDashGap={0}
+            pathDashAnimateTime={0}
+            pathTransitionDuration={ROUTE_DRAW_MS}
             atmosphereColor={BLUE}
             atmosphereAltitude={0.15}
             animateIn={true}
