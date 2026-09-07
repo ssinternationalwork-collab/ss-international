@@ -50,9 +50,8 @@ export default function IndustriesOverview() {
       <section style={{ padding: '96px 72px 112px' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <motion.div variants={gridVariants} initial='hidden' whileInView='visible' viewport={{ once: true, amount: 0.08 }} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14 }}>
-            {industries.map((industry, index) => {
-              const isLive = industry.slug === 'automotive';
-              const Card = (
+            {industries.map((industry, index) => (
+              <Link key={industry.slug} href={`/industries/${industry.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                 <motion.article
                   variants={cardVariants}
                   whileHover={{ y: -4 }}
@@ -75,21 +74,14 @@ export default function IndustriesOverview() {
                       <div style={{ width: 28, height: 2, background: '#1B91FF', marginBottom: 14 }} />
                       <h2 style={{ color: '#FFFFFF', fontSize: 25, lineHeight: 1, letterSpacing: '-0.8px', fontWeight: 900, textTransform: 'uppercase', margin: '0 0 12px' }}>{industry.name}</h2>
                       <p style={{ color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-inter)', fontSize: 13, lineHeight: 1.65, margin: '0 0 18px' }}>{industry.description}</p>
-                      <div style={{ color: isLive ? '#1B91FF' : 'rgba(255,255,255,0.45)', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                        {isLive ? 'View Applications' : 'Detailed Page Coming Next'}
-                        {isLive && <span aria-hidden='true'>→</span>}
+                      <div style={{ color: '#1B91FF', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                        View Applications <span aria-hidden='true'>→</span>
                       </div>
                     </div>
                   </div>
                 </motion.article>
-              );
-
-              return isLive ? (
-                <Link key={industry.slug} href={`/industries/${industry.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>{Card}</Link>
-              ) : (
-                <div key={industry.slug}>{Card}</div>
-              );
-            })}
+              </Link>
+            ))}
           </motion.div>
         </div>
       </section>
