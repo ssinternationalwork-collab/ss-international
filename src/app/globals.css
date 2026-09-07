@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=Inter:wght@400;500;600&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  --font-barlow: 'Barlow', sans-serif;
+  --font-inter: 'Inter', sans-serif;
+  --blue: #1B91FF;
+  --black: #141414;
+  --forge: #141414;
+  --mist: #D7D7D6;
+  --smoke: #A8A8A8;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scrollbar-width: auto; scrollbar-color: #1B91FF #f0f0f0; }
+body {
+  background: #ffffff;
+  color: #141414;
+  font-family: var(--font-inter);
+  -webkit-font-smoothing: antialiased;
+}
+h1,h2,h3,h4,h5,h6,nav,button { font-family: var(--font-barlow); }
+::selection { background: #1B91FF; color: #fff; }
+::-webkit-scrollbar { width: 12px; }
+::-webkit-scrollbar-track { background: #f0f0f0; }
+::-webkit-scrollbar-thumb { background: #1B91FF; border-radius: 6px; border: 3px solid #f0f0f0; }
+
+/* Mobile responsive — customer registration */
+@media (max-width: 768px) {
+  .ssi-form-container { padding: 24px 16px 40px !important; }
+  .ssi-field-row { flex-direction: column !important; }
+  .ssi-field-sidebar { width: 100% !important; padding: 14px 16px !important; }
+  .ssi-footer { padding: 24px 16px !important; }
+  .ssi-footer-row { flex-direction: column !important; align-items: flex-start !important; text-align: center !important; }
+  .ssi-hero { height: auto !important; min-height: 300px !important; overflow: visible !important; }
+  .ssi-hero-inner { padding: 0 20px !important; justify-content: center !important; }
+  .ssi-hero-content { text-align: center !important; max-width: 100% !important; }
+  .ssi-hero-eyebrow { font-size: 11px !important; letter-spacing: 2px !important; margin-bottom: 12px !important; }
+  .ssi-hero-logo-row { justify-content: center !important; margin-left: 0 !important; flex-direction: column !important; gap: 8px !important; }
+  .ssi-hero-title { font-size: 22px !important; letter-spacing: 0 !important; }
+  .ssi-hero-tagline { font-size: 13px !important; }
+  .ssi-hero-headline { font-size: 26px !important; letter-spacing: -0.5px !important; white-space: normal !important; word-break: normal !important; }
+  .ssi-department-tab { display: none !important; }
+}
+@media (max-width: 600px) {
+  .ssi-grid-3, .ssi-grid-2 { grid-template-columns: 1fr !important; }
+  .ssi-modal-label { min-width: 100px !important; font-size: 12px !important; }
+  .ssi-modal-label + span { font-size: 12px !important; }
+}
+@media (max-width: 480px) {
+  .ssi-modal-row { flex-direction: column !important; gap: 4px !important; }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
