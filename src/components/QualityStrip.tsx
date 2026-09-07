@@ -30,8 +30,8 @@ export default function QualityStrip() {
               <span style={{ color: '#D7D7D6' }}>Quality You Can Rely On.</span>
             </h2>
           </div>
-          <a href='/about' style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: BLACK, color: '#fff', padding: '14px 28px', borderRadius: 10, fontSize: 14, fontWeight: 700, textDecoration: 'none', fontFamily: 'var(--font-barlow)', whiteSpace: 'nowrap', flexShrink: 0 }}>
-            View All Certifications
+          <a href='/quality-assurance' style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: BLACK, color: '#fff', padding: '14px 28px', borderRadius: 50, fontSize: 14, fontWeight: 700, textDecoration: 'none', fontFamily: 'var(--font-barlow)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            View Quality Assurance
             <svg width='14' height='14' viewBox='0 0 14 14' fill='none'><path d='M3 7H11M7 3L11 7L7 11' stroke='#fff' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round'/></svg>
           </a>
         </div>
