@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 
 const BLUE = '#1B91FF';
 const BRONZE = '#B8935A';
-const ARC_STEP_MS = 1800;
+const ARC_ANIMATION_MS = 2600;
 
 const ARCS = [
   { startLat: 28.7041, startLng: 77.1025, endLat: 51.507, endLng: -0.127 },
@@ -31,15 +31,14 @@ const DEST_POINTS = [
   { lat: 55.755, lng: 37.617, label: 'Russia' },
 ];
 
-const INDIA_POINT = { lat: 28.7041, lng: 77.1025, size: 1.2, color: BLUE, label: 'India' };
+const INDIA_POINT = { lat: 28.7041, lng: 77.1025, label: 'India', isOrigin: true };
 
 export default function GlobalReach() {
   const globeRef = useRef<any>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const startTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [Globe, setGlobe] = useState<any>(null);
-  const [activeIndex, setActiveIndex] = useState(-1);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [routesActive, setRoutesActive] = useState(false);
 
   useEffect(() => {
     import('react-globe.gl').then((mod) => setGlobe(() => mod.default));
@@ -47,49 +46,50 @@ export default function GlobalReach() {
 
   useEffect(() => {
     if (!sectionRef.current) return;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
+        if (startTimerRef.current) clearTimeout(startTimerRef.current);
+
         if (entry.isIntersecting) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          setActiveIndex(-1);
+          // Reset first so every route launches from India together on entry.
+          setRoutesActive(false);
+
           if (globeRef.current) {
-            globeRef.current.pointOfView({ lat: 20, lng: 78, altitude: 2 }, 800);
+            globeRef.current.pointOfView({ lat: 20, lng: 78, altitude: 2 }, 700);
           }
-          let i = -1;
-          timerRef.current = setInterval(() => {
-            i += 1;
-            if (i >= ARCS.length) {
-              if (timerRef.current) clearInterval(timerRef.current);
-              return;
-            }
-            setActiveIndex(i);
-          }, ARC_STEP_MS);
+
+          startTimerRef.current = setTimeout(() => {
+            setRoutesActive(true);
+          }, 220);
         } else {
-          if (timerRef.current) clearInterval(timerRef.current);
+          setRoutesActive(false);
         }
       },
-      { threshold: 0.4 }
+      { threshold: 0.35 }
     );
+
     observer.observe(sectionRef.current);
+
     return () => {
       observer.disconnect();
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (startTimerRef.current) clearTimeout(startTimerRef.current);
     };
   }, []);
 
   useEffect(() => {
-    if (globeRef.current) {
-      globeRef.current.controls().autoRotate = true;
-      globeRef.current.controls().autoRotateSpeed = 0.3;
-      globeRef.current.controls().enableZoom = false;
-      globeRef.current.pointOfView({ lat: 20, lng: 78, altitude: 2 }, 0);
-    }
+    if (!globeRef.current) return;
+
+    const controls = globeRef.current.controls();
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.18;
+    controls.enableZoom = false;
+    globeRef.current.pointOfView({ lat: 20, lng: 78, altitude: 2 }, 0);
   }, [Globe]);
 
-  const visibleArcs = activeIndex >= 0 ? ARCS.slice(0, activeIndex + 1) : [];
   const visibleLabels = [
-    { lat: INDIA_POINT.lat, lng: INDIA_POINT.lng, label: 'India' },
-    ...DEST_POINTS,
+    INDIA_POINT,
+    ...DEST_POINTS.map((point) => ({ ...point, isOrigin: false })),
   ];
 
   return (
@@ -111,6 +111,7 @@ export default function GlobalReach() {
         background: 'radial-gradient(circle, rgba(184,147,90,0.10) 0%, transparent 65%)',
         pointerEvents: 'none',
       }}/>
+
       <div style={{ textAlign: 'center', marginBottom: 40, position: 'relative', zIndex: 2 }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
           <div style={{ width: 28, height: 1, background: BRONZE }}/>
@@ -128,10 +129,11 @@ export default function GlobalReach() {
           letterSpacing: '-2px', textTransform: 'uppercase',
           margin: '0 0 18px',
         }}>
-          Our Products.<br/><span style={{ color: 'rgba(255,255,255,0.15)' }}>Reach Every Corner.</span>
+          From India.<br/><span style={{ color: 'rgba(255,255,255,0.15)' }}>Built For Global Reach.</span>
         </h2>
       </div>
-      <div ref={containerRef} style={{
+
+      <div style={{
         display: 'flex', justifyContent: 'center',
         position: 'relative', zIndex: 1,
       }}>
@@ -143,13 +145,15 @@ export default function GlobalReach() {
             backgroundColor="rgba(0,0,0,0)"
             globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
             bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
-            arcsData={visibleArcs}
-            arcColor={() => 'rgba(184,147,90,0.9)'}
+            arcsData={routesActive ? ARCS : []}
+            arcColor={() => 'rgba(184,147,90,0.92)'}
             arcOpacity={1}
             arcStroke={0.8}
-            arcDashLength={0.4}
-            arcDashGap={0.15}
-            arcDashAnimateTime={ARC_STEP_MS}
+            arcDashLength={0.42}
+            arcDashGap={0.12}
+            arcDashInitialGap={0}
+            arcDashAnimateTime={ARC_ANIMATION_MS}
+            arcsTransitionDuration={900}
             arcAltitudeAutoScale={0.12}
             atmosphereColor={BLUE}
             atmosphereAltitude={0.15}
@@ -157,6 +161,11 @@ export default function GlobalReach() {
             htmlElementsData={visibleLabels}
             htmlElement={(d: any) => {
               const el = document.createElement('div');
+              const markerColor = d.isOrigin ? BLUE : BRONZE;
+              const labelWeight = d.isOrigin ? 800 : 600;
+              const markerWidth = d.isOrigin ? 18 : 14;
+              const markerHeight = d.isOrigin ? 24 : 20;
+
               el.style.cssText = `
                 display: flex;
                 flex-direction: column;
@@ -167,16 +176,16 @@ export default function GlobalReach() {
               el.innerHTML = `
                 <div style='
                   color: white;
-                  font-size: 11px;
-                  font-weight: 600;
+                  font-size: ${d.isOrigin ? 12 : 10}px;
+                  font-weight: ${labelWeight};
                   font-family: sans-serif;
                   white-space: nowrap;
                   margin-bottom: 3px;
                   text-shadow: 0 1px 4px rgba(0,0,0,0.8);
                   text-align: center;
                 '>${d.label}</div>
-                <svg width='16' height='22' viewBox='0 0 24 32' fill='none' xmlns='http://www.w3.org/2000/svg'>
-                  <path d='M12 0C5.373 0 0 5.373 0 12c0 8 12 20 12 20S24 20 24 12C24 5.373 18.627 0 12 0z' fill='#B8935A' opacity='0.9'/>
+                <svg width='${markerWidth}' height='${markerHeight}' viewBox='0 0 24 32' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                  <path d='M12 0C5.373 0 0 5.373 0 12c0 8 12 20 12 20S24 20 24 12C24 5.373 18.627 0 12 0z' fill='${markerColor}' opacity='0.95'/>
                   <circle cx='12' cy='12' r='4' fill='white'/>
                 </svg>
               `;
